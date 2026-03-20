@@ -90,7 +90,17 @@ docker compose up -d
 
 ### 4. Access the UI
 
-Open http://localhost:3000 in your browser. You should see "Generic Agent" available as a model.
+Open http://localhost:3000 in your browser.
+
+**First-time setup in Open WebUI:**
+1. The connection should auto-configure via environment variables
+2. Click the model selector (top of chat)
+3. Select `agent:main` — this is your configured agent
+
+If you don't see `agent:main` in the model dropdown:
+- Check that the gateway is healthy: `docker compose logs openclaw`
+- Verify the gateway health check passes: `curl http://localhost:18789/healthz`
+- Ensure `WEBUI_AUTH=false` is set in docker-compose.yml (no login required)
 
 ## Configuration Details
 
