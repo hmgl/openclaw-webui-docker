@@ -22,22 +22,22 @@ This stack gives you a **fully functional AI agent** in under two minutes comple
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  Your Browser → http://localhost:3000                  │
-│                     │                                    │
-│              Open WebUI (port 3000)                     │
-│                     │                                    │
-│         ┌──────────┴──────────┐                          │
-│         │   Shared Secret     │                          │
-│         │   (open-handshake)  │                          │
-│         └──────────┬──────────┘                          │
-│                    │                                     │
-│           OpenClaw Gateway                               │
-│         (internal:8080, external:18789)                   │
-│                    │                                     │
-│         ┌──────────┴──────────┐                          │
-│         │  Model Providers    │                          │
-│         │  (Ollama Cloud API) │                          │
-│         └─────────────────────┘                          │
+│  Your Browser → http://YOUR-URL-OR-IP:YOUR-PORT         │
+│                    │                                    │
+│                Open WebUI                               │
+│                    │                                    │
+│         ┌──────────┴──────────┐                         │
+│         │   Shared Secret     │                         │
+│         │   (open-handshake)  │                         │
+│         └──────────┬──────────┘                         │
+│                    │                                    │
+│           OpenClaw Gateway                              │
+│           (internal:18789)                              │
+│                    │                                    │
+│         ┌──────────┴──────────┐                         │
+│         │  Model Providers    │                         │
+│         │  (Ollama Cloud API) │                         │
+│         └─────────────────────┘                         │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -86,7 +86,7 @@ cp openclaw.json.example openclaw.json
 There are a few common environment variable that can be set by using an .env files in the Docker Compose root directory:
 
 ```bash
-```cp .env.example .env
+cp .env.example .env
 # Edit .env
 ```
 
@@ -97,19 +97,25 @@ docker compose up -d
 ```
 
 ### 4. Setup Open-WebUI
-
 1. Open http://localhost:3000 in your browser (or whatever port you decided on)
+
 2. Create a login
+
 3. Click the circle in the top right, and click "Admin Panel"
 <img width="1120" height="318" alt="image" src="https://github.com/user-attachments/assets/101a82ce-412d-491f-aad2-84f930b2cee4" />
+
 4. Click "Settings"
 <img width="458" height="166" alt="image" src="https://github.com/user-attachments/assets/dbd33262-5f5c-403c-8ab5-c69656226b31" />
+
 5. Click "Connections"
 <img width="341" height="121" alt="image" src="https://github.com/user-attachments/assets/5d6a5b53-e671-4679-9e9e-da1e2f2c738e" />
+
 6. Click the tiny cog on the right to change the OpenAI API Settings:
 <img width="800" height="127" alt="image" src="https://github.com/user-attachments/assets/80b8f2c1-252d-47b5-84cb-3452b1a4f2a5" />
+
 7. In the "Add a model ID," type in `agent:main` then click the +
 <img width="714" height="766" alt="image" src="https://github.com/user-attachments/assets/03eb703a-4bd3-49f2-a014-97fbd5843257" />
+
 8. Click Save.
 
 ---
