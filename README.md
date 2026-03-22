@@ -1,12 +1,12 @@
-# NOTE: This repo is currently under development! Please try it out and reach out if you have any tips to make it functional.
-
 # OpenClaw + Open WebUI Docker Stack
 
-A near-zero-config Docker Compose setup for spinning up an OpenClaw agent with an Open WebUI frontend. Pre-configured for Ollama Cloud API — just add your credentials and go.
+A low-config Docker Compose setup for spinning up an OpenClaw agent with an Open WebUI frontend. Pre-configured for Openrouter's current best free model, StepFun Step 3.5. Add whatever models you like!
+
+The only port this exposes publicly is the web interface port for Open-WebUI, which you can configure. The gateway is not exposed publicly, and is totally sandboxed in its container (like a good little lobster).
 
 ## What This Is
 
-This stack gives you a **fully functional AI agent** in under a minute:
+This stack gives you a **fully functional AI agent** in under two minutes completely for free (preconfigured to use Openrouter with your API key). The stack uses three containers:
 
 - **OpenClaw Gateway** — The agent runtime with tool access, memory, and model routing
 - **Open WebUI** — A ChatGPT-like frontend for chatting with your agent
@@ -54,8 +54,7 @@ We landed on **option 3**: Two containers (gateway + webui) on a shared Docker n
 ## Prerequisites
 
 - Docker and Docker Compose installed
-- An API key from [Ollama Cloud](https://ollama.com) (or another OpenAI-compatible provider)
-- (Optional) A different shared secret token for production use
+- An API key for a compute provide (Openrouter is free)
 
 ## Quick Start
 
@@ -66,23 +65,30 @@ git clone https://github.com/willificent/openclaw-webui-docker.git
 cd openclaw-webui-docker
 ```
 
-### 2. Edit `openclaw.json`
+### (Optional) Set the ownership for openclaw folder
+If you are using this container in a secure location where the files are owned by anyone other than your user (for example, if you used `sudo` and the files are owned by `root`), the gateway will fail to start. Change the ownship:
+```bash
+mkdir -p ~/.openclaw
+sudo chown -R 1000:1000 ~/.openclaw
+```
 
-You **must** customize the configuration before starting:
+### (Optional, but suggested) Edit `openclaw/openclaw.json`
+
+Customize the configuration before starting:
 
 ```bash
 cp openclaw.json.example openclaw.json
-# Edit openclaw.json with your credentials
+# Edit openclaw.json
 ```
+**Important:** The `gateway.auth.token` must match the `OPENAI_API_KEY` in the `open-webui` service environment. The docker-compose.yml uses `openaisharedkey` as a placeholder — change both if you want a different secret.
 
-**Required changes:**
+### (Optional) Set the enviroment variables before launch
+There are a few common environment variable that can be set by using an .env files in the Docker Compose root directory:
 
-| Field | Description | Example |
-|-------|-------------|---------|
-| `models.providers.ollama-cloud.apiKey` | Your Ollama Cloud API key | `abc123...` |
-| `gateway.auth.token` | Shared secret for gateway-ui auth | `my-secret-token-2026` |
-
-**Important:** The `gateway.auth.token` must match the `OPENAI_API_KEY` in the `open-webui` service environment. The docker-compose.yml uses `open-handshake-2026` as a placeholder — change both if you want a different secret.
+```bash
+```cp .env.example .env
+# Edit .env
+```
 
 ### 3. Launch
 
@@ -90,13 +96,21 @@ cp openclaw.json.example openclaw.json
 docker compose up -d
 ```
 
-### 4. Access and Select Your Agent
+### 4. Setup Open-WebUI
 
-1. Open http://localhost:3000 in your browser.
-2. **Crucial Model Selection:** By default, Open WebUI might not show anything in the chat.
-3. Click the **Model Selector** dropdown at the top center of the chat interface.
-4. Select **`agent:main`** (or `agent:{your-agent-id}`). 
-5. If the dropdown is empty, go to **Settings > Connections** and verify that the OpenAI API URL is `http://openclaw:8080/v1` and the API Key matches your `OPENCLAW_GATEWAY_TOKEN`.
+1. Open http://localhost:3000 in your browser (or whatever port you decided on)
+2. Create a login
+3. Click the circle in the top right, and click "Admin Panel"
+<img width="1120" height="318" alt="image" src="https://github.com/user-attachments/assets/101a82ce-412d-491f-aad2-84f930b2cee4" />
+4. Click "Settings"
+<img width="458" height="166" alt="image" src="https://github.com/user-attachments/assets/dbd33262-5f5c-403c-8ab5-c69656226b31" />
+5. Click "Connections"
+<img width="341" height="121" alt="image" src="https://github.com/user-attachments/assets/5d6a5b53-e671-4679-9e9e-da1e2f2c738e" />
+6. Click the tiny cog on the right to change the OpenAI API Settings:
+<img width="800" height="127" alt="image" src="https://github.com/user-attachments/assets/80b8f2c1-252d-47b5-84cb-3452b1a4f2a5" />
+7. In the "Add a model ID," type in `agent:main` then click the +
+<img width="714" height="766" alt="image" src="https://github.com/user-attachments/assets/03eb703a-4bd3-49f2-a014-97fbd5843257" />
+8. Click Save.
 
 ---
 
@@ -159,28 +173,25 @@ The agent ID `main` appears as `agent:main` in Open WebUI's model selector.
 | External | Internal | Service |
 |----------|----------|---------|
 | 3000 | 8080 | Open WebUI |
-| 18789 | 18789 | OpenClaw Gateway (external API) |
+| N/A | 18789 | OpenClaw Gateway (external API) |
 
 ## Customization
 
-### Using Local Ollama Instead of Cloud
+### Using a different provider
 
-Edit `openclaw.json`:
+Edit `openclaw/openclaw.json`(this example is for Ollama):
 
 ```json
 "providers": {
-  "ollama-local": {
-    "baseUrl": "http://host.docker.internal:11434/v1",
+  "ollama": {
+    "baseUrl": "YOUR-OLLAMA-IP-ADDRESS:11434",
     "api": "ollama",
     "models": [
-      { "id": "llama3.2", "name": "Llama 3.2" }
+      { "id": "YOUR-OLLAMA-MODEL", "name": "OLLAMA MODEL NAME" }
     ]
   }
 }
 ```
-
-Then update `agents.defaults.model.primary` to `ollama-local/llama3.2`.
-
 ### Adding More Agents
 
 Add entries to `agents.list`:
@@ -193,25 +204,16 @@ Add entries to `agents.list`:
   "model": { "primary": "ollama-cloud/glm-5:cloud" }
 }
 ```
-
-Each agent appears as `agent:{id}` in Open WebUI.
+Each agent appears as `agent:{id}` in Open WebUI. If it doesn't appear, add it manually by using the same process as setup (Admin Panel --> Settings --> Connections --> Cog)
 
 ### Persistent Storage
 
-Data is stored in `./data/` by default:
-- `./data/openclaw/` — Gateway state, memory, plugins
-- `./data/open-webui/` — UI preferences, chat history
-- `./data/browser-config/` — Browser container state
+Data is stored in the Compose directory by default.
 
 ## Security Notes
 
-⚠️ **This setup is designed for local/ephemeral use.** For production:
-
-1. Change the shared secret to a strong, unique token
-2. Enable `WEBUI_AUTH=true` and configure user accounts
-3. Remove `allowInsecureAuth: true` from gateway config
-4. Bind gateway to `localhost` instead of `lan`
-5. Put everything behind a reverse proxy with TLS
+⚠️ **This setup is designed for local use!**
+Be very careful with Openclaw. It can *do* things. Make sure you don't expose ports publicly that you aren't confident are fully secured. You've been warned.
 
 ## Files
 
@@ -219,8 +221,8 @@ Data is stored in `./data/` by default:
 |------|---------|
 | `docker-compose.yml` | Container orchestration |
 | `openclaw.json.example` | Template configuration (copy to `openclaw.json`) |
-| `openclaw.json` | Your customized config (gitignored) |
-| `data/` | Persistent storage (created on first run) |
+| `openclaw/openclaw.json` | Your customized config (gitignored) |
+| `.env` | Your customized environment variables (gitignored) |
 
 ## Troubleshooting
 
@@ -230,8 +232,7 @@ Data is stored in `./data/` by default:
 - Ensure gateway health check passes: `curl http://localhost:18789/healthz`
 
 **API errors:**
-- Verify your Ollama Cloud API key is valid
-- Check the `api` field is `"openai-completions"` for Ollama Cloud
+- Verify your API key is valid
 - Ensure `baseUrl` ends with `/v1`
 
 **Container keeps restarting:**
@@ -239,12 +240,14 @@ Data is stored in `./data/` by default:
 - Verify Docker has enough memory (2GB+ recommended)
 
 ## Credits
+Uses material and inspiration fromn the following sources:
+Docker-Openclaw (https://github.com/ideabosque/docker-openclaw/tree/main)
+Alpine-Openclaw (https://hub.docker.com/r/alpine/openclaw)
+Open WebUI (https://github.com/open-webui/open-webui)
+Openclaw (https://github.com/openclaw/openclaw)
 
-Created by [Clawde](https://github.com/willificent) as part of the OpenClaw ecosystem.
-
-OpenClaw: https://github.com/openclaw/openclaw
-Open WebUI: https://github.com/open-webui/open-webui
+Created by [William](https://github.com/willificent) as part of the OpenClaw ecosystem.
 
 ## License
 
-MIT — do whatever you want with it. Just don't ship your API keys.
+MIT — I don't own any of the containers, so do whatever you want with it. Just don't ship your API keys.
