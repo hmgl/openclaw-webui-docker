@@ -1,4 +1,29 @@
 {
   "schemaVersion": 2,
-  "dockerfilePath": "./Dockerfile"
+  "dockerComposeJson": {
+    "version": "3",
+    "services": {
+      "openclaw": {
+        "image": "ghcr.io/openclaw/openclaw:latest",
+        "container_name": "openclaw",
+        "restart": "always",
+        "environment": [
+          "NODE_ENV=production"
+        ],
+        "volumes": [
+          "openclaw-data:/home/node/.openclaw"
+        ]
+      },
+      "open-webui": {
+        "image": "ghcr.io/open-webui/open-webui:main",
+        "restart": "always",
+        "environment": [
+          "OPENCLAW_GATEWAY_URL=http://openclaw:18789"
+        ],
+        "volumes": [
+          "openwebui-data:/app/backend/data"
+        ]
+      }
+    }
+  }
 }
